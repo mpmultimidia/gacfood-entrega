@@ -1,0 +1,6 @@
+{
+  "name": "gacfood-motoboy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App standalone do motoboy GACFOOD — fala direto com o Supabase, sem depender do servidor local."
+}
