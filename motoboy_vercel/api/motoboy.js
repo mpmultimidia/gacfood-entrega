@@ -322,6 +322,13 @@ function limparMapasRemovidos(idsAtivos) {
   });
 }
 
+function limparTodosOsMapas() {
+  Object.keys(mapasAtivos).forEach(id => {
+    try { mapasAtivos[id].map.remove(); } catch (e) {}
+    delete mapasAtivos[id];
+  });
+}
+
 // ─── Lista de entregas ───────────────────────────────────────────────────
 async function carregarEntregas() {
   const token = getToken();
@@ -337,9 +344,14 @@ async function carregarEntregas() {
 
     const lista = document.getElementById('lista-entregas');
 
+    // Os <div> de mapa antigos vão ser destruídos agora que o innerHTML é
+    // reescrito — então os mapas Leaflet presos a eles também precisam ser
+    // encerrados aqui, senão ficam "órfãos" e o mapa novo aparece vazio
+    // depois de um recarregamento (era por isso que sumia depois de 20s).
+    limparTodosOsMapas();
+
     if (entregas.length === 0) {
       lista.innerHTML = '<div class="vazio">📦 Nenhuma entrega pendente no momento.</div>';
-      limparMapasRemovidos([]);
     } else {
       lista.innerHTML = entregas.map(p => \`
         <div class="card">
@@ -356,7 +368,6 @@ async function carregarEntregas() {
         </div>
       \`).join('');
 
-      limparMapasRemovidos(entregas.map(p => String(p.id)));
       entregas.forEach(p => renderizarMapaEntrega(p));
     }
 
@@ -409,14 +420,14 @@ async function registrarOcorrencia(entregaId) {
   const motivo = prompt('Informe a ocorrência:');
   if (!motivo) return;
   try {
-    const resultado = await rpc('registrar_ocorrencia_entrega', {
-      p_token: getToken(), p_entrega_id: entregaId, p_observacao: motivo
+    const resultado = await rpc('registrar_ocorrencia', {
+      p_token: getToken(), p_entrega_id: entregaId, p_tipo: 'OUTRO', p_descricao: motivo
     });
     if (resultado?.ok) {
       toast('Ocorrência registrada');
       carregarEntregas();
     } else {
-      toast(resultado?.error || 'Erro ao registrar ocorrência', 'err');
+      toast(resultado?.error || resultado?.erro || 'Erro ao registrar ocorrência', 'err');
     }
   } catch (e) {
     console.error(e);
