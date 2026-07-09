@@ -224,9 +224,14 @@ function pararEnvioGps() {
 const cacheGeocode = {};
 const mapasAtivos = {};
 
-async function geocodificarEndereco(pedidoId, endereco) {
+async function geocodificarEndereco(pedidoId, endereco, bairro) {
   if (cacheGeocode[pedidoId]) return cacheGeocode[pedidoId];
-  const query = endereco + (CIDADE_PADRAO ? (', ' + CIDADE_PADRAO) : '');
+  // Inclui o bairro na busca — evita confundir ruas de mesmo nome em
+  // bairros/cidades diferentes (é o mesmo cuidado tomado no servidor local).
+  const partes = [endereco];
+  if (bairro) partes.push(bairro);
+  if (CIDADE_PADRAO) partes.push(CIDADE_PADRAO);
+  const query = partes.join(', ');
   try {
     const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query));
     const dados = await r.json();
@@ -273,7 +278,7 @@ async function renderizarMapaEntrega(pedido) {
   const container = document.getElementById('mapa-' + pedido.id);
   if (!container || typeof L === 'undefined') return;
 
-  const destino = await geocodificarEndereco(pedido.id, pedido.endereco);
+  const destino = await geocodificarEndereco(pedido.id, pedido.endereco, pedido.bairro);
   if (!destino) {
     container.innerHTML = '<div class="mapa-indisponivel">Não foi possível localizar este endereço no mapa.</div>';
     return;
