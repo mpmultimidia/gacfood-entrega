@@ -42,6 +42,7 @@ module.exports = (req, res) => {
   .btn-confirmar{background:var(--green);color:#fff;margin-top:10px;}
   .btn-deslocamento{background:#2980b9;color:#fff;margin-top:10px;}
   .btn-ocorrencia{background:#f39c12;color:#fff;margin-top:10px;}
+  .btn-ver-detalhes{background:transparent;color:var(--accent);border:1px solid var(--border);margin-top:8px;font-size:0.8rem;padding:9px;}
   .erro{color:var(--accent);font-size:0.82rem;margin-top:-8px;margin-bottom:12px;display:none;}
   .pedido-num{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
   .pedido-cliente{font-size:1.05rem;font-weight:700;margin:2px 0 8px;}
@@ -56,6 +57,29 @@ module.exports = (req, res) => {
   .mapa{height:180px;border-radius:8px;overflow:hidden;margin-top:10px;background:var(--bg);border:1px solid var(--border);}
   .mapa-indisponivel{height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.78rem;text-align:center;padding:0 12px;}
   .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--text);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;}
+  .modal-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:420px;width:100%;}
+  .modal-card h3{margin:0 0 14px;font-size:1rem;}
+  .modal-card label{display:block;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .modal-card select,.modal-card textarea{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;margin-bottom:14px;font-family:inherit;resize:vertical;}
+  .modal-actions{display:flex;gap:10px;}
+  .modal-actions button{width:auto;flex:1;padding:12px;}
+  .btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .detalhe-header{display:flex;align-items:center;gap:12px;padding:4px 0 16px;}
+  .detalhe-voltar{width:auto;flex:none;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:1.1rem;}
+  .detalhe-header span{font-size:1.05rem;font-weight:700;}
+  .detalhe-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-size:0.78rem;font-weight:700;margin-bottom:14px;}
+  .detalhe-badge.atribuido{background:rgba(243,156,18,0.18);color:#f39c12;}
+  .detalhe-badge.em-rota{background:rgba(52,152,219,0.18);color:#3498db;}
+  .detalhe-secao{margin-bottom:16px;}
+  .detalhe-label{color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+  .detalhe-valor{font-size:1rem;font-weight:600;}
+  .detalhe-linha-tel{display:flex;align-items:center;justify-content:space-between;}
+  .btn-whatsapp{width:38px;height:38px;flex:none;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:1.1rem;text-decoration:none;padding:0;}
+  .detalhe-item-linha{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.88rem;}
+  .detalhe-acoes{position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;display:flex;gap:10px;}
+  .detalhe-acoes button{padding:14px;font-size:0.85rem;}
+  .btn-ver-mapa{background:#2980b9;color:#fff;}
 </style>
 </head>
 <body>
@@ -86,6 +110,43 @@ module.exports = (req, res) => {
     <div id="historico-entregas"></div>
   </div>
 
+  <!-- DETALHE DO PEDIDO (tela cheia) -->
+  <div id="tela-detalhe-pedido" style="display:none;">
+    <div class="detalhe-header">
+      <button class="detalhe-voltar" onclick="fecharDetalhePedido()">←</button>
+      <span id="detalhe-titulo">Pedido</span>
+    </div>
+    <div id="detalhe-conteudo"></div>
+  </div>
+
+</div>
+
+<!-- MODAL DE OCORRÊNCIA -->
+<div class="modal-overlay" id="modal-ocorrencia" style="display:none;">
+  <div class="modal-card">
+    <h3>⚠️ Informar Ocorrência</h3>
+    <label>Motivo</label>
+    <select id="ocorrencia-tipo">
+      <option value="CLIENTE_NAO_ATENDE">Cliente não atende</option>
+      <option value="CLIENTE_PEDIU_AGUARDAR">Cliente pediu para aguardar</option>
+      <option value="CLIENTE_MUDANCA_ENDERECO">Cliente solicitou mudança de endereço</option>
+      <option value="ENDERECO_INCORRETO">Endereço incorreto</option>
+      <option value="ENDERECO_NAO_LOCALIZADO">Endereço não localizado</option>
+      <option value="CLIENTE_AUSENTE">Cliente ausente</option>
+      <option value="CLIENTE_RECUSOU">Cliente recusou o pedido</option>
+      <option value="CLIENTE_CANCELOU">Cliente cancelou durante a entrega</option>
+      <option value="CLIENTE_SEM_DINHEIRO">Cliente sem dinheiro (pagamento em dinheiro)</option>
+      <option value="PROBLEMA_PAGAMENTO">Problema no pagamento</option>
+      <option value="ENTREGA_PORTARIA">Cliente solicitou entrega na portaria</option>
+      <option value="CLIENTE_DESCEU_RETIRADA">Cliente desceu para retirar</option>
+    </select>
+    <label>Detalhe adicional (opcional)</label>
+    <textarea id="ocorrencia-detalhe" placeholder="Ex: tentei ligar 3 vezes..." rows="3"></textarea>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="fecharModalOcorrencia()">Cancelar</button>
+      <button class="btn-ocorrencia" id="btn-confirmar-ocorrencia" onclick="confirmarOcorrencia()">Confirmar</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -134,12 +195,14 @@ function fmtHora(iso) {
 }
 
 function mostrarTela(id) {
-  ['tela-carregando','tela-login','tela-entregas'].forEach(t => {
+  ['tela-carregando','tela-login','tela-entregas','tela-detalhe-pedido'].forEach(t => {
     const el = document.getElementById(t);
     if (el) el.style.display = (t === id ? '' : 'none');
   });
   const sair = document.getElementById('btn-sair');
-  if (sair) sair.style.display = (id === 'tela-entregas') ? '' : 'none';
+  const telaComSair = (id === 'tela-entregas' || id === 'tela-detalhe-pedido');
+  if (sair) sair.style.display = telaComSair ? '' : 'none';
+  if (telaComSair) iniciarEnvioGps(); else pararEnvioGps();
 }
 
 // ─── Login ──────────────────────────────────────────────────────────────
@@ -330,9 +393,20 @@ function limparTodosOsMapas() {
 }
 
 // ─── Lista de entregas ───────────────────────────────────────────────────
+let carregandoEntregas = false;
+let ultimaListaEntregas = [];
+
 async function carregarEntregas() {
+  // Trava simples: se já existe um carregarEntregas() em andamento (ex: o
+  // recarregamento automático de 20s coincidindo com um clique manual em
+  // "Iniciar deslocamento"), ignora essa chamada nova em vez de deixar as
+  // duas mexerem no mapa ao mesmo tempo — era isso que fazia o mapa ficar
+  // em branco às vezes.
+  if (carregandoEntregas) return;
+  carregandoEntregas = true;
+
   const token = getToken();
-  if (!token) { mostrarTela('tela-login'); return; }
+  if (!token) { mostrarTela('tela-login'); carregandoEntregas = false; return; }
 
   try {
     const entregas = await rpc('listar_minhas_entregas', { p_token: token });
@@ -353,6 +427,7 @@ async function carregarEntregas() {
     if (entregas.length === 0) {
       lista.innerHTML = '<div class="vazio">📦 Nenhuma entrega pendente no momento.</div>';
     } else {
+      ultimaListaEntregas = entregas;
       lista.innerHTML = entregas.map(p => \`
         <div class="card">
           <div class="pedido-num">Pedido #\${p.numero_cupom ?? p.pedido_id_local}</div>
@@ -361,10 +436,11 @@ async function carregarEntregas() {
           <div class="pedido-linha"><span class="ic">📞</span><span>\${p.cliente_telefone || ''}</span></div>
           <div class="pedido-linha"><span class="ic">🕒</span><span>Saída: \${fmtHora(p.horario_saida)}</span></div>
           <div class="pedido-valor">\${fmt(p.valor)}</div>
+          <button class="btn-ver-detalhes" onclick="abrirDetalhePedido('\${p.id}')">🔎 Ver detalhes do pedido</button>
           <div class="mapa" id="mapa-\${p.id}"><div class="mapa-indisponivel">Carregando mapa...</div></div>
           <button class="btn-deslocamento" onclick="iniciarDeslocamento('\${p.id}', this)">🛵 Iniciar deslocamento</button>
           <button class="btn-confirmar" onclick="confirmarEntrega('\${p.id}', this)">✅ Entreguei pedido</button>
-          <button class="btn-ocorrencia" onclick="registrarOcorrencia('\${p.id}')">⚠️ Informar ocorrência</button>
+          <button class="btn-ocorrencia" onclick="abrirModalOcorrencia('\${p.id}')">⚠️ Informar ocorrência</button>
         </div>
       \`).join('');
 
@@ -376,6 +452,8 @@ async function carregarEntregas() {
   } catch (e) {
     console.error('Erro carregar entregas:', e);
     toast('Erro ao carregar entregas', 'err');
+  } finally {
+    carregandoEntregas = false;
   }
 }
 
@@ -416,15 +494,133 @@ async function confirmarEntrega(entregaId, btn) {
   }
 }
 
-async function registrarOcorrencia(entregaId) {
-  const motivo = prompt('Informe a ocorrência:');
-  if (!motivo) return;
+function linkWhatsApp(telefone) {
+  const digitos = (telefone || '').replace(/\D/g, '');
+  if (!digitos) return null;
+  const comCodigo = digitos.length <= 11 ? '55' + digitos : digitos;
+  return 'https://wa.me/' + comCodigo;
+}
+
+function abrirDetalhePedido(entregaId) {
+  const p = ultimaListaEntregas.find(e => String(e.id) === String(entregaId));
+  if (!p) { toast('Pedido não encontrado', 'err'); return; }
+
+  document.getElementById('detalhe-titulo').textContent =
+    'Pedido #' + (p.numero_cupom ?? p.pedido_id_local);
+
+  const itens = Array.isArray(p.itens) ? p.itens : [];
+  const pagamentos = Array.isArray(p.pagamentos) ? p.pagamentos : [];
+  const emRota = !!p.horario_saida;
+  const wa = linkWhatsApp(p.cliente_telefone);
+
+  document.getElementById('detalhe-conteudo').innerHTML = \`
+    <div class="detalhe-badge \${emRota ? 'em-rota' : 'atribuido'}">\${emRota ? 'EM ROTA' : 'ATRIBUÍDO'}</div>
+
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Cliente</div>
+      <div class="detalhe-valor">\${p.cliente_nome}</div>
+    </div>
+
+    \${p.cliente_telefone ? \`
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Telefone</div>
+      <div class="detalhe-linha-tel">
+        <div class="detalhe-valor">\${p.cliente_telefone}</div>
+        \${wa ? '<a class="btn-whatsapp" href="' + wa + '" target="_blank" rel="noopener">💬</a>' : ''}
+      </div>
+    </div>\` : ''}
+
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Endereço</div>
+      <div class="detalhe-valor">\${p.endereco}</div>
+      \${p.bairro ? '<div style="font-size:0.85rem;color:var(--muted);">' + p.bairro + '</div>' : ''}
+    </div>
+
+    \${p.referencia ? \`
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Referência</div>
+      <div class="detalhe-valor" style="font-size:0.9rem;">\${p.referencia}</div>
+    </div>\` : ''}
+
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Itens do pedido</div>
+      \${itens.length
+        ? itens.map(i => '<div class="detalhe-item-linha"><span>' + i.quantidade + 'x ' + i.nome + (i.observacao ? ' <span style="color:var(--muted);font-size:0.78rem;">(' + i.observacao + ')</span>' : '') + '</span><span style="color:var(--green);">' + fmt(i.subtotal) + '</span></div>').join('')
+        : '<div style="color:var(--muted);font-size:0.85rem;">Itens não disponíveis para este pedido</div>'}
+    </div>
+
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Forma de pagamento</div>
+      \${pagamentos.length
+        ? pagamentos.map(pg => '<div class="detalhe-valor" style="font-size:0.9rem;">' + (pg.descricao || '--') + '</div>').join('')
+        : '<div style="color:var(--muted);font-size:0.85rem;">Não informado</div>'}
+    </div>
+
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Valor do pedido</div>
+      <div class="detalhe-valor" style="color:var(--green);font-size:1.2rem;">\${fmt(p.valor)}</div>
+    </div>
+
+    <div class="detalhe-secao">
+      <div class="detalhe-label">Horário do pedido</div>
+      <div class="detalhe-valor">\${fmtHora(p.horario_pedido || p.criado_em)}</div>
+    </div>
+
+    <div class="detalhe-acoes">
+      <button class="btn-ver-mapa" onclick="verNoMapaDetalhe('\${p.id}')">🗺️ VER NO MAPA</button>
+      \${emRota
+        ? '<button class="btn-confirmar" onclick="confirmarEntrega(\\'' + p.id + '\\', this)">✅ ENTREGUE</button>'
+        : '<button class="btn-deslocamento" onclick="iniciarDeslocamento(\\'' + p.id + '\\', this)">🛵 INICIAR DESLOCAMENTO</button>'}
+    </div>
+
+    <button class="btn-ocorrencia" style="margin-top:10px;" onclick="abrirModalOcorrencia('\${p.id}')">⚠️ Informar ocorrência</button>
+  \`;
+
+  mostrarTela('tela-detalhe-pedido');
+}
+
+function fecharDetalhePedido() {
+  mostrarTela('tela-entregas');
+}
+
+function verNoMapaDetalhe(entregaId) {
+  fecharDetalhePedido();
+  setTimeout(() => {
+    const el = document.getElementById('mapa-' + entregaId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 150);
+}
+
+let entregaIdOcorrencia = null;
+
+function abrirModalOcorrencia(entregaId) {
+  entregaIdOcorrencia = entregaId;
+  document.getElementById('ocorrencia-tipo').selectedIndex = 0;
+  document.getElementById('ocorrencia-detalhe').value = '';
+  document.getElementById('modal-ocorrencia').style.display = 'flex';
+}
+
+function fecharModalOcorrencia() {
+  document.getElementById('modal-ocorrencia').style.display = 'none';
+  entregaIdOcorrencia = null;
+}
+
+async function confirmarOcorrencia() {
+  if (!entregaIdOcorrencia) return;
+
+  const tipo = document.getElementById('ocorrencia-tipo').value;
+  const detalhe = document.getElementById('ocorrencia-detalhe').value.trim();
+
+  const btn = document.getElementById('btn-confirmar-ocorrencia');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
   try {
     const resultado = await rpc('registrar_ocorrencia', {
-      p_token: getToken(), p_entrega_id: entregaId, p_tipo: 'OUTRO', p_descricao: motivo
+      p_token: getToken(), p_entrega_id: entregaIdOcorrencia, p_tipo: tipo, p_descricao: detalhe || null
     });
     if (resultado?.ok) {
       toast('Ocorrência registrada');
+      fecharModalOcorrencia();
       carregarEntregas();
     } else {
       toast(resultado?.error || resultado?.erro || 'Erro ao registrar ocorrência', 'err');
@@ -432,6 +628,8 @@ async function registrarOcorrencia(entregaId) {
   } catch (e) {
     console.error(e);
     toast('Erro de comunicação', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar';
   }
 }
 
@@ -498,4 +696,5 @@ if (getToken()) carregarEntregas(); else mostrarTela('tela-login');
 </body>
 </html>`);
 };
+
 
