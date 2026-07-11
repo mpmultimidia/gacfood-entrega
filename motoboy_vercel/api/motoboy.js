@@ -853,6 +853,3 @@ if (getToken()) carregarEntregas(); else mostrarTela('tela-login');
 </body>
 </html>`);
 };
-
-
-
