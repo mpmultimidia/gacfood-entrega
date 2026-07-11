@@ -335,7 +335,7 @@ function notificarNovoPedido(pedido) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   try {
     new Notification('GACFOOD DELIVERY', {
-      body: 'Novo pedido disponível! Você tem um novo pedido para entrega.\nPedido #' + (pedido.numero_cupom ?? pedido.pedido_id_local),
+      body: 'Novo pedido disponível! Você tem um novo pedido para entrega. Pedido #' + (pedido.numero_cupom ?? pedido.pedido_id_local),
     });
   } catch (e) {
     console.warn('Notificação falhou:', e.message);
