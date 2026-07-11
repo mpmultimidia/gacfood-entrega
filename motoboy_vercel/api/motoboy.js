@@ -43,6 +43,20 @@ module.exports = (req, res) => {
   .btn-deslocamento{background:#2980b9;color:#fff;margin-top:10px;}
   .btn-ocorrencia{background:#f39c12;color:#fff;margin-top:10px;}
   .btn-ver-detalhes{background:transparent;color:var(--accent);border:1px solid var(--border);margin-top:8px;font-size:0.8rem;padding:9px;}
+  .login-logo{text-align:center;margin-bottom:6px;}
+  .login-logo-icon{font-size:2.2rem;line-height:1;}
+  .login-logo-texto{font-size:1.5rem;font-weight:800;letter-spacing:0.5px;margin-top:4px;}
+  .login-logo-texto span{color:var(--green);}
+  .login-logo-sub{font-size:0.7rem;color:var(--muted);letter-spacing:3px;margin-top:2px;}
+  .login-subtitulo{text-align:center;color:var(--muted);font-size:0.85rem;margin:14px 0 18px;}
+  .login-campo{position:relative;margin-bottom:14px;}
+  .login-campo input{padding-left:38px;margin-bottom:0;}
+  .login-icone{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.95rem;opacity:0.7;}
+  .login-lembrar{display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--text);margin-bottom:16px;cursor:pointer;}
+  .login-lembrar input{width:auto;margin:0;}
+  .login-esqueceu{text-align:center;margin-top:14px;font-size:0.82rem;}
+  .login-esqueceu a{color:var(--muted);text-decoration:underline;}
+  .login-versao{text-align:center;color:var(--muted);font-size:0.7rem;margin-top:22px;opacity:0.6;}
   .erro{color:var(--accent);font-size:0.82rem;margin-top:-8px;margin-bottom:12px;display:none;}
   .pedido-num{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
   .pedido-cliente{font-size:1.05rem;font-weight:700;margin:2px 0 8px;}
@@ -57,7 +71,7 @@ module.exports = (req, res) => {
   .mapa{height:180px;border-radius:8px;overflow:hidden;margin-top:10px;background:var(--bg);border:1px solid var(--border);}
   .mapa-indisponivel{height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.78rem;text-align:center;padding:0 12px;}
   .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--text);}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;}
   .modal-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:420px;width:100%;}
   .modal-card h3{margin:0 0 14px;font-size:1rem;}
   .modal-card label{display:block;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
@@ -80,6 +94,9 @@ module.exports = (req, res) => {
   .detalhe-acoes{position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;display:flex;gap:10px;}
   .detalhe-acoes button{padding:14px;font-size:0.85rem;}
   .btn-ver-mapa{background:#2980b9;color:#fff;}
+  .hist-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;margin-left:6px;vertical-align:middle;}
+  .hist-entregue{background:rgba(39,174,96,0.18);color:var(--green);}
+  .hist-nao-entregue{background:rgba(231,76,60,0.18);color:var(--accent);}
 </style>
 </head>
 <body>
@@ -95,18 +112,47 @@ module.exports = (req, res) => {
 
   <!-- LOGIN -->
   <div id="tela-login" class="card" style="display:none;">
-    <label>Usuário</label>
-    <input id="login-usuario" autocomplete="username" placeholder="Seu login">
-    <label>Senha</label>
-    <input id="login-senha" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter') fazerLogin()">
+    <div class="login-logo">
+      <div class="login-logo-icon">🛵</div>
+      <div class="login-logo-texto">GAC<span>FOOD</span></div>
+      <div class="login-logo-sub">DELIVERY</div>
+    </div>
+    <div class="login-subtitulo">Acesse sua conta</div>
+
+    <div class="login-campo">
+      <span class="login-icone">👤</span>
+      <input id="login-usuario" autocomplete="username" placeholder="Login">
+    </div>
+    <div class="login-campo">
+      <span class="login-icone">🔒</span>
+      <input id="login-senha" type="password" autocomplete="current-password" placeholder="Senha" onkeydown="if(event.key==='Enter') fazerLogin()">
+    </div>
+
+    <label class="login-lembrar">
+      <input type="checkbox" id="login-lembrar" checked> Lembrar de mim
+    </label>
+
     <div class="erro" id="login-erro"></div>
-    <button class="btn-primary" onclick="fazerLogin()" id="btn-login">Entrar</button>
+    <button class="btn-primary" onclick="fazerLogin()" id="btn-login">ENTRAR</button>
+    <div class="login-esqueceu"><a href="#" onclick="event.preventDefault();toast('Fale com o restaurante para redefinir sua senha');">Esqueceu sua senha?</a></div>
+    <div class="login-versao">Versão 1.0.0</div>
   </div>
 
   <!-- ENTREGAS -->
   <div id="tela-entregas" style="display:none;">
     <div id="resumo-entregas"></div>
     <div id="lista-entregas"></div>
+    <div class="card" style="margin-bottom:8px;">
+      <div class="pedido-num" style="margin-bottom:10px;">📜 Filtrar histórico por período</div>
+      <label>Data inicial</label>
+      <input type="date" id="hist-data-inicio">
+      <label>Data final</label>
+      <input type="date" id="hist-data-fim">
+      <div style="display:flex;gap:10px;">
+        <button class="btn-primary" style="flex:1;" onclick="filtrarHistorico()">Filtrar</button>
+        <button class="btn-secondary" style="flex:1;" onclick="limparFiltroHistorico()">Limpar</button>
+      </div>
+    </div>
     <div id="historico-entregas"></div>
   </div>
 
@@ -231,13 +277,22 @@ async function fazerLogin() {
 
     localStorage.setItem('motoboy_token', resultado.token);
     localStorage.setItem('motoboy_nome', resultado.motoboy.nome);
+
+    if (document.getElementById('login-lembrar').checked) {
+      localStorage.setItem('motoboy_login_salvo', usuario);
+    } else {
+      localStorage.removeItem('motoboy_login_salvo');
+    }
+
+    pedirPermissaoNotificacao();
+
     document.getElementById('login-senha').value = '';
     await carregarEntregas();
   } catch (e) {
     erroEl.textContent = 'Erro de conexão. Tente novamente.';
     erroEl.style.display = 'block';
   } finally {
-    btn.disabled = false; btn.textContent = 'Entrar';
+    btn.disabled = false; btn.textContent = 'ENTRAR';
   }
 }
 
@@ -247,6 +302,61 @@ function sair() {
   pararEnvioGps();
   mostrarTela('tela-login');
 }
+
+// ─── Notificações de novo pedido (só enquanto o app está aberto) ────────
+// Usa a Notification API direto do navegador — sem service worker, então
+// só funciona com o app/aba aberto (não aparece com o celular bloqueado).
+let idsPedidosConhecidos = null; // null = ainda não estabelecemos a base
+
+function pedirPermissaoNotificacao() {
+  if (typeof Notification === 'undefined') return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+
+function detectarPedidosNovos(entregas) {
+  const idsAtuais = new Set(entregas.map(e => String(e.id)));
+
+  // Na primeira carga só estabelece a base (não notifica pedidos que já
+  // estavam atribuídos antes do app abrir).
+  if (idsPedidosConhecidos !== null) {
+    entregas.forEach(p => {
+      if (!idsPedidosConhecidos.has(String(p.id))) {
+        notificarNovoPedido(p);
+      }
+    });
+  }
+
+  idsPedidosConhecidos = idsAtuais;
+}
+
+function notificarNovoPedido(pedido) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  try {
+    new Notification('GACFOOD DELIVERY', {
+      body: 'Novo pedido disponível! Você tem um novo pedido para entrega.\nPedido #' + (pedido.numero_cupom ?? pedido.pedido_id_local),
+    });
+  } catch (e) {
+    console.warn('Notificação falhou:', e.message);
+  }
+  toast('📦 Novo pedido #' + (pedido.numero_cupom ?? pedido.pedido_id_local));
+}
+
+// Se a sessão já estava salva (não precisou logar de novo agora), ainda
+// assim tenta habilitar notificação — em muitos navegadores mobile isso
+// funciona mesmo fora de um clique direto do usuário.
+if (getToken()) pedirPermissaoNotificacao();
+(function preencherLoginSalvo() {
+  const salvo = localStorage.getItem('motoboy_login_salvo');
+  if (salvo) {
+    const campo = document.getElementById('login-usuario');
+    if (campo) campo.value = salvo;
+  } else {
+    const chk = document.getElementById('login-lembrar');
+    if (chk) chk.checked = false;
+  }
+})();
 
 // ─── GPS ────────────────────────────────────────────────────────────────
 let intervalGps = null;
@@ -412,9 +522,10 @@ async function carregarEntregas() {
     const entregas = await rpc('listar_minhas_entregas', { p_token: token });
     if (!Array.isArray(entregas)) throw new Error('SESSAO_INVALIDA');
 
+    detectarPedidosNovos(entregas);
+
     document.querySelector('header h1').textContent = '🛵 Olá, ' + (getNome() || 'motoboy');
     mostrarTela('tela-entregas');
-    iniciarEnvioGps();
 
     const lista = document.getElementById('lista-entregas');
 
@@ -458,6 +569,7 @@ async function carregarEntregas() {
 }
 
 async function iniciarDeslocamento(entregaId, btn) {
+  if (btn.disabled) return; // trava contra clique duplo
   btn.disabled = true;
   try {
     const resultado = await rpc('iniciar_deslocamento', { p_token: getToken(), p_entrega_id: entregaId });
@@ -476,6 +588,7 @@ async function iniciarDeslocamento(entregaId, btn) {
 }
 
 async function confirmarEntrega(entregaId, btn) {
+  if (btn.disabled) return; // trava contra clique duplo
   if (!confirm('Confirmar entrega realizada?')) return;
   btn.disabled = true;
   try {
@@ -610,25 +723,33 @@ async function confirmarOcorrencia() {
 
   const tipo = document.getElementById('ocorrencia-tipo').value;
   const detalhe = document.getElementById('ocorrencia-detalhe').value.trim();
+  const entregaId = entregaIdOcorrencia;
 
   const btn = document.getElementById('btn-confirmar-ocorrencia');
+  if (btn.disabled) return; // trava contra clique duplo
   btn.disabled = true; btn.textContent = 'Enviando...';
 
   try {
+    // A própria função no Supabase já marca o pedido como NAO_ENTREGUE
+    // (separado de ENTREGUE, pra não misturar nos relatórios) — não
+    // precisa mais chamar confirmar_entrega depois.
     const resultado = await rpc('registrar_ocorrencia', {
-      p_token: getToken(), p_entrega_id: entregaIdOcorrencia, p_tipo: tipo, p_descricao: detalhe || null
+      p_token: getToken(), p_entrega_id: entregaId, p_tipo: tipo, p_descricao: detalhe || null
     });
-    if (resultado?.ok) {
-      toast('Ocorrência registrada');
-      fecharModalOcorrencia();
-      carregarEntregas();
-    } else {
+
+    if (!resultado?.ok) {
       toast(resultado?.error || resultado?.erro || 'Erro ao registrar ocorrência', 'err');
+      btn.disabled = false; btn.textContent = 'Confirmar';
+      return;
     }
+
+    toast('Ocorrência registrada e pedido concluído');
+    fecharModalOcorrencia();
+    fecharDetalhePedido();
+    carregarEntregas();
   } catch (e) {
     console.error(e);
     toast('Erro de comunicação', 'err');
-  } finally {
     btn.disabled = false; btn.textContent = 'Confirmar';
   }
 }
@@ -655,32 +776,68 @@ async function carregarResumoHoje() {
   }
 }
 
+let ultimoHistoricoCompleto = [];
+
 async function carregarHistorico() {
   const token = getToken();
   if (!token) return;
   try {
     const historico = await rpc('historico_entregas_motoboy', { p_token: token });
-    const area = document.getElementById('historico-entregas');
-    if (!area) return;
-
-    if (!Array.isArray(historico) || historico.length === 0) {
-      area.innerHTML = '<div class="vazio">Nenhuma entrega realizada.</div>';
-      return;
-    }
-
-    area.innerHTML = historico.map(e => \`
-      <div class="card">
-        <div class="pedido-num">Pedido #\${e.numero_cupom || e.pedido_id_local}</div>
-        <div class="pedido-cliente">\${e.cliente_nome}</div>
-        <div class="pedido-linha"><span class="ic">📍</span><span>\${e.endereco}</span></div>
-        <div class="pedido-linha"><span class="ic">📞</span><span>\${e.cliente_telefone || ''}</span></div>
-        <div class="pedido-linha"><span class="ic">💰</span><span>Valor: \${fmt(e.valor)}</span></div>
-        <div class="pedido-linha"><span class="ic">🕒</span><span>Entregue: \${fmtHora(e.horario_entrega)}</span></div>
-      </div>
-    \`).join('');
+    ultimoHistoricoCompleto = Array.isArray(historico) ? historico : [];
+    renderizarHistorico();
   } catch (e) {
     console.warn('Erro histórico:', e.message);
   }
+}
+
+function renderizarHistorico() {
+  const area = document.getElementById('historico-entregas');
+  if (!area) return;
+
+  const dataInicio = document.getElementById('hist-data-inicio')?.value;
+  const dataFim = document.getElementById('hist-data-fim')?.value;
+
+  let lista = ultimoHistoricoCompleto;
+
+  // Filtro por período — compara só a parte de data (YYYY-MM-DD) do
+  // horario_entrega, ignorando hora.
+  if (dataInicio || dataFim) {
+    lista = lista.filter(e => {
+      if (!e.horario_entrega) return false;
+      const dataEntrega = e.horario_entrega.slice(0, 10);
+      if (dataInicio && dataEntrega < dataInicio) return false;
+      if (dataFim && dataEntrega > dataFim) return false;
+      return true;
+    });
+  }
+
+  if (!lista.length) {
+    area.innerHTML = '<div class="vazio">Nenhuma entrega ' + ((dataInicio || dataFim) ? 'no período selecionado.' : 'realizada.') + '</div>';
+    return;
+  }
+
+  area.innerHTML = lista.map(e => \`
+    <div class="card">
+      <div class="pedido-num">Pedido #\${e.numero_cupom || e.pedido_id_local}
+        <span class="hist-badge \${e.status === 'NAO_ENTREGUE' ? 'hist-nao-entregue' : 'hist-entregue'}">\${e.status === 'NAO_ENTREGUE' ? 'NÃO ENTREGUE' : 'ENTREGUE'}</span>
+      </div>
+      <div class="pedido-cliente">\${e.cliente_nome}</div>
+      <div class="pedido-linha"><span class="ic">📍</span><span>\${e.endereco}</span></div>
+      <div class="pedido-linha"><span class="ic">📞</span><span>\${e.cliente_telefone || ''}</span></div>
+      <div class="pedido-linha"><span class="ic">💰</span><span>Valor: \${fmt(e.valor)}</span></div>
+      <div class="pedido-linha"><span class="ic">🕒</span><span>\${e.status === 'NAO_ENTREGUE' ? 'Concluído' : 'Entregue'}: \${fmtHora(e.horario_entrega)}</span></div>
+    </div>
+  \`).join('');
+}
+
+function filtrarHistorico() {
+  renderizarHistorico();
+}
+
+function limparFiltroHistorico() {
+  document.getElementById('hist-data-inicio').value = '';
+  document.getElementById('hist-data-fim').value = '';
+  renderizarHistorico();
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────
@@ -696,5 +853,6 @@ if (getToken()) carregarEntregas(); else mostrarTela('tela-login');
 </body>
 </html>`);
 };
+
 
 
