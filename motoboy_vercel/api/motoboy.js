@@ -285,6 +285,7 @@ async function fazerLogin() {
     }
 
     pedirPermissaoNotificacao();
+    garantirAudioContext();
 
     document.getElementById('login-senha').value = '';
     await carregarEntregas();
@@ -315,6 +316,60 @@ function pedirPermissaoNotificacao() {
   }
 }
 
+// ─── Som de novo pedido ──────────────────────────────────────────────────
+// Gerado na hora via Web Audio API (dois bipes) — não depende de nenhum
+// arquivo de áudio hospedado. Navegadores mobile só deixam o som tocar
+// depois de algum toque do usuário na página (não pode ser automático) —
+// por isso o AudioContext" é criado/retomado no clique de login, e também
+// no primeiro toque em qualquer lugar da tela, como reforço para quando a
+// sessão já estava salva e carregarEntregas() roda sozinho, sem um clique
+// de login.
+let audioContextMotoboy = null;
+
+function garantirAudioContext() {
+  if (!audioContextMotoboy) {
+    try {
+      audioContextMotoboy = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      audioContextMotoboy = null;
+    }
+  }
+  if (audioContextMotoboy && audioContextMotoboy.state === 'suspended') {
+    audioContextMotoboy.resume().catch(() => {});
+  }
+  return audioContextMotoboy;
+}
+
+function tocarSomNovoPedido() {
+  const ctx = garantirAudioContext();
+  if (!ctx) return;
+  try {
+    const tocarBip = (atraso) => {
+      const osc = ctx.createOscillator();
+      const ganho = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      ganho.gain.setValueAtTime(0.0001, ctx.currentTime + atraso);
+      ganho.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + atraso + 0.02);
+      ganho.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + atraso + 0.3);
+      osc.connect(ganho);
+      ganho.connect(ctx.destination);
+      osc.start(ctx.currentTime + atraso);
+      osc.stop(ctx.currentTime + atraso + 0.32);
+    };
+    tocarBip(0);
+    tocarBip(0.35);
+  } catch (e) {
+    console.warn('Som de notificação falhou:', e.message);
+  }
+}
+
+// Reforço: no primeiro toque em qualquer lugar da tela, tenta destravar o
+// áudio — cobre o caso de abrir o app já logado (sem passar pelo clique de
+// "Entrar"), que é quando a maioria dos navegadores mobile bloqueia o som.
+document.addEventListener('click', garantirAudioContext, { once: true });
+document.addEventListener('touchstart', garantirAudioContext, { once: true });
+
 function detectarPedidosNovos(entregas) {
   const idsAtuais = new Set(entregas.map(e => String(e.id)));
 
@@ -332,6 +387,7 @@ function detectarPedidosNovos(entregas) {
 }
 
 function notificarNovoPedido(pedido) {
+  tocarSomNovoPedido();
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   try {
     new Notification('GACFOOD DELIVERY', {
