@@ -23,20 +23,42 @@ module.exports = (req, res) => {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   :root{
-    --bg:#0b1220; --card:#141b2d; --border:#232c42; --text:#e5e9f0; --muted:#8892a6;
-    --accent:#e94560; --green:#27ae60;
+    --bg:#0b1220; --card:#141b2d; --card2:#0f1521; --border:#232c42; --text:#e5e9f0; --muted:#8892a6;
+    --accent:#e94560; --green:#27ae60; --green2:#22c55e; --orange:#f39c12; --blue:#3498db;
   }
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
-  header{padding:16px;background:var(--card);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;}
-  header h1{font-size:1.05rem;margin:0;}
-  #btn-sair{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:0.75rem;}
-  .container{padding:16px;max-width:480px;margin:0 auto;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+  .container{padding:16px;max-width:480px;margin:0 auto;padding-bottom:90px;}
+
+  header.app-header{padding:16px;background:var(--card);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+  .header-esquerda{display:flex;align-items:center;gap:12px;}
+  .avatar-circulo{width:40px;height:40px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .header-saudacao{font-size:1.02rem;font-weight:700;}
+  .header-sino{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:0.95rem;}
+  #btn-sair{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:0.8rem;}
+
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:15;max-width:480px;margin:0 auto;}
+  .nav-item{flex:1;background:none;border:none;color:var(--muted);padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.68rem;}
+  .nav-item span:first-child{font-size:1.25rem;}
+  .nav-item.active{color:var(--green2);}
+
+  .resumo-pendentes{background:linear-gradient(135deg,var(--green),var(--green2));border-radius:14px;padding:18px;margin-bottom:16px;color:#06210f;}
+  .resumo-topo{font-size:0.85rem;font-weight:700;opacity:0.85;}
+  .resumo-numero{font-size:2.6rem;font-weight:800;margin:4px 0 6px;}
+  .resumo-atualizado{font-size:0.75rem;opacity:0.85;display:flex;align-items:center;gap:6px;}
+  .resumo-atualizado button{background:rgba(255,255,255,0.25);border:none;color:#06210f;border-radius:6px;padding:2px 8px;font-size:0.8rem;font-weight:700;}
+
+  .filtro-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;}
+  .filtro-tab{flex:none;background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:20px;font-size:0.8rem;font-weight:600;white-space:nowrap;}
+  .filtro-tab.active{background:var(--green2);border-color:var(--green2);color:#06210f;}
+
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
   label{display:block;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
   input{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;margin-bottom:14px;}
   input:focus{outline:none;border-color:var(--accent);}
-  button{width:100%;padding:13px;border:none;border-radius:8px;font-size:0.95rem;font-weight:700;cursor:pointer;}
+  button{width:100%;padding:13px;border:none;border-radius:8px;font-size:0.95rem;font-weight:700;}
   button:disabled{opacity:0.5;}
   .btn-primary{background:var(--accent);color:#fff;}
   .btn-confirmar{background:var(--green);color:#fff;margin-top:10px;}
@@ -62,23 +84,29 @@ module.exports = (req, res) => {
   .pedido-cliente{font-size:1.05rem;font-weight:700;margin:2px 0 8px;}
   .pedido-linha{display:flex;gap:8px;font-size:0.85rem;color:var(--text);margin-bottom:4px;}
   .pedido-linha .ic{width:18px;flex-shrink:0;}
-  .pedido-valor{font-size:1.1rem;font-weight:700;color:var(--green);margin-top:8px;}
+  .pedido-valor{font-size:1.1rem;font-weight:700;color:var(--green2);margin-top:8px;}
   .vazio{text-align:center;color:var(--muted);padding:40px 12px;font-size:0.9rem;}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);padding:10px 18px;border-radius:8px;font-size:0.85rem;opacity:0;transition:opacity 0.25s;pointer-events:none;z-index:20;}
+  .toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);padding:10px 18px;border-radius:8px;font-size:0.85rem;opacity:0;transition:opacity 0.25s;pointer-events:none;z-index:20;}
   .toast.show{opacity:1;}
   .toast.err{border-color:var(--accent);color:var(--accent);}
   #tela-carregando{text-align:center;color:var(--muted);padding:60px 12px;}
   .mapa{height:180px;border-radius:8px;overflow:hidden;margin-top:10px;background:var(--bg);border:1px solid var(--border);}
   .mapa-indisponivel{height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.78rem;text-align:center;padding:0 12px;}
   .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--text);}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;}
-  .modal-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:420px;width:100%;}
-  .modal-card h3{margin:0 0 14px;font-size:1rem;}
-  .modal-card label{display:block;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
-  .modal-card select,.modal-card textarea{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;margin-bottom:14px;font-family:inherit;resize:vertical;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;}
+  .modal-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 22px;max-width:360px;width:100%;text-align:center;}
+  .modal-card h3{margin:0 0 8px;font-size:1.15rem;}
+  .modal-card p{color:var(--muted);font-size:0.88rem;margin:0 0 22px;}
+  .check-circle{width:64px;height:64px;border-radius:50%;background:rgba(34,197,94,0.15);border:2px solid var(--green2);color:var(--green2);font-size:1.8rem;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
   .modal-actions{display:flex;gap:10px;}
-  .modal-actions button{width:auto;flex:1;padding:12px;}
-  .btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .modal-actions button{flex:1;padding:13px;border:none;border-radius:10px;font-weight:700;font-size:0.88rem;}
+  .btn-modal-nao{background:var(--card2);color:var(--text);border:1px solid var(--border) !important;}
+  .btn-modal-sim{background:var(--green2);color:#06210f;}
+  .modal-ocorrencia-card{text-align:left;}
+  .modal-ocorrencia-card label{display:block;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .modal-ocorrencia-card select,.modal-ocorrencia-card textarea{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;margin-bottom:14px;font-family:inherit;resize:vertical;}
+
   .detalhe-header{display:flex;align-items:center;gap:12px;padding:4px 0 16px;}
   .detalhe-voltar{width:auto;flex:none;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:1.1rem;}
   .detalhe-header span{font-size:1.05rem;font-weight:700;}
@@ -94,16 +122,29 @@ module.exports = (req, res) => {
   .detalhe-acoes{position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;display:flex;gap:10px;}
   .detalhe-acoes button{padding:14px;font-size:0.85rem;}
   .btn-ver-mapa{background:#2980b9;color:#fff;}
+
+  .resumo-historico{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;justify-content:space-around;text-align:center;margin-bottom:14px;}
+  .resumo-historico-item .num{font-size:1.4rem;font-weight:800;}
+  .resumo-historico-item .num.verde{color:var(--green2);}
+  .resumo-historico-item .lbl{font-size:0.72rem;color:var(--muted);margin-top:2px;}
   .hist-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;margin-left:6px;vertical-align:middle;}
-  .hist-entregue{background:rgba(39,174,96,0.18);color:var(--green);}
+  .hist-entregue{background:rgba(39,174,96,0.18);color:var(--green2);}
   .hist-nao-entregue{background:rgba(231,76,60,0.18);color:var(--accent);}
 </style>
 </head>
 <body>
 
-<header>
-  <h1 id="titulo-app">🛵 GACFOOD Motoboy</h1>
-  <button id="btn-sair" onclick="sair()" style="display:none;">Sair</button>
+<header class="app-header">
+  <div class="header-esquerda">
+    <div class="avatar-circulo">🧑</div>
+    <div>
+      <div class="header-saudacao">Olá, <span id="header-nome">motoboy</span></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="header-sino" id="btn-sino" title="Notificações">🔔</button>
+    <button id="btn-sair" onclick="sair()" style="display:none;width:auto;">Sair</button>
+  </div>
 </header>
 
 <div class="container">
@@ -138,22 +179,37 @@ module.exports = (req, res) => {
     <div class="login-versao">Versão 1.0.0</div>
   </div>
 
-  <!-- ENTREGAS -->
-  <div id="tela-entregas" style="display:none;">
-    <div id="resumo-entregas"></div>
-    <div id="lista-entregas"></div>
-    <div class="card" style="margin-bottom:8px;">
-      <div class="pedido-num" style="margin-bottom:10px;">📜 Filtrar histórico por período</div>
-      <label>Data inicial</label>
-      <input type="date" id="hist-data-inicio">
-      <label>Data final</label>
-      <input type="date" id="hist-data-fim">
-      <div style="display:flex;gap:10px;">
-        <button class="btn-primary" style="flex:1;" onclick="filtrarHistorico()">Filtrar</button>
-        <button class="btn-secondary" style="flex:1;" onclick="limparFiltroHistorico()">Limpar</button>
-      </div>
+  <!-- ABA INÍCIO (dashboard + lista) -->
+  <div id="aba-inicio" style="display:none;">
+
+    <div class="resumo-pendentes">
+      <div class="resumo-topo">Pedidos Pendentes</div>
+      <div class="resumo-numero" id="qtd-pendentes">0</div>
+      <div class="resumo-atualizado">Atualizado <span id="hora-atualizado">agora</span> <button onclick="carregarEntregas()">↻</button></div>
     </div>
+
+    <div class="filtro-tabs">
+      <button class="filtro-tab active" data-filtro="todos" onclick="filtrarPedidos('todos')">Todos</button>
+      <button class="filtro-tab" data-filtro="proximos" onclick="filtrarPedidos('proximos')">Próximos</button>
+      <button class="filtro-tab" data-filtro="antigos" onclick="filtrarPedidos('antigos')">Mais antigos</button>
+    </div>
+
+    <div id="lista-entregas"></div>
+
+  </div>
+
+  <!-- ABA HISTÓRICO -->
+  <div id="aba-historico" style="display:none;">
+
+    <div class="filtro-tabs">
+      <button class="filtro-tab active" data-periodo="hoje" onclick="filtrarHistoricoPeriodo('hoje')">Hoje</button>
+      <button class="filtro-tab" data-periodo="semana" onclick="filtrarHistoricoPeriodo('semana')">Semana</button>
+      <button class="filtro-tab" data-periodo="mes" onclick="filtrarHistoricoPeriodo('mes')">Mês</button>
+    </div>
+
+    <div id="resumo-historico" class="resumo-historico"></div>
     <div id="historico-entregas"></div>
+
   </div>
 
   <!-- DETALHE DO PEDIDO (tela cheia) -->
@@ -167,10 +223,28 @@ module.exports = (req, res) => {
 
 </div>
 
+<nav class="bottom-nav" id="bottom-nav" style="display:none;">
+  <button class="nav-item active" data-tab="inicio" onclick="mostrarAba('inicio')"><span>🏠</span><span>Início</span></button>
+  <button class="nav-item" data-tab="historico" onclick="mostrarAba('historico')"><span>🕐</span><span>Histórico</span></button>
+</nav>
+
+<!-- MODAL CONFIRMAR ENTREGA -->
+<div class="modal-overlay" id="modal-confirmar" style="display:none;">
+  <div class="modal-card">
+    <div class="check-circle">✓</div>
+    <h3>Confirmar entrega</h3>
+    <p>Deseja realmente finalizar esta entrega?</p>
+    <div class="modal-actions">
+      <button class="btn-modal-nao" onclick="fecharModalConfirmar()">NÃO</button>
+      <button class="btn-modal-sim" id="btn-modal-confirmar-sim" onclick="confirmarEntregaModalAcao()">SIM, ENTREGUEI!</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL DE OCORRÊNCIA -->
 <div class="modal-overlay" id="modal-ocorrencia" style="display:none;">
-  <div class="modal-card">
-    <h3>⚠️ Informar Ocorrência</h3>
+  <div class="modal-card modal-ocorrencia-card">
+    <h3 style="text-align:center;">⚠️ Informar Ocorrência</h3>
     <label>Motivo</label>
     <select id="ocorrencia-tipo">
       <option value="CLIENTE_NAO_ATENDE">Cliente não atende</option>
@@ -189,8 +263,8 @@ module.exports = (req, res) => {
     <label>Detalhe adicional (opcional)</label>
     <textarea id="ocorrencia-detalhe" placeholder="Ex: tentei ligar 3 vezes..." rows="3"></textarea>
     <div class="modal-actions">
-      <button class="btn-secondary" onclick="fecharModalOcorrencia()">Cancelar</button>
-      <button class="btn-ocorrencia" id="btn-confirmar-ocorrencia" onclick="confirmarOcorrencia()">Confirmar</button>
+      <button class="btn-modal-nao" onclick="fecharModalOcorrencia()">Cancelar</button>
+      <button class="btn-modal-sim" id="btn-confirmar-ocorrencia" onclick="confirmarOcorrencia()">Confirmar</button>
     </div>
   </div>
 </div>
@@ -202,7 +276,6 @@ const SUPABASE_URL = ${JSON.stringify(process.env.SUPABASE_URL || "")};
 const SUPABASE_ANON_KEY = ${JSON.stringify(process.env.SUPABASE_PUBLISHABLE_KEY || "")};
 const CIDADE_PADRAO = ${JSON.stringify(process.env.GACFOOD_CIDADE_PADRAO || "")};
 
-// ─── Utilitários ────────────────────────────────────────────────────────
 function toast(msg, tipo) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -241,17 +314,40 @@ function fmtHora(iso) {
 }
 
 function mostrarTela(id) {
-  ['tela-carregando','tela-login','tela-entregas','tela-detalhe-pedido'].forEach(t => {
+  ['tela-carregando','tela-login'].forEach(t => {
     const el = document.getElementById(t);
     if (el) el.style.display = (t === id ? '' : 'none');
   });
-  const sair = document.getElementById('btn-sair');
-  const telaComSair = (id === 'tela-entregas' || id === 'tela-detalhe-pedido');
-  if (sair) sair.style.display = telaComSair ? '' : 'none';
-  if (telaComSair) iniciarEnvioGps(); else pararEnvioGps();
+
+  const mostrandoApp = (id === 'app');
+  document.getElementById('bottom-nav').style.display = mostrandoApp ? 'flex' : 'none';
+  document.getElementById('btn-sair').style.display = mostrandoApp ? '' : 'none';
+
+  if (id === 'tela-login' || id === 'tela-carregando') {
+    document.getElementById('aba-inicio').style.display = 'none';
+    document.getElementById('aba-historico').style.display = 'none';
+    document.getElementById('tela-detalhe-pedido').style.display = 'none';
+  }
+
+  if (mostrandoApp || id === 'tela-detalhe-pedido') {
+    iniciarEnvioGps();
+  } else {
+    pararEnvioGps();
+  }
 }
 
-// ─── Login ──────────────────────────────────────────────────────────────
+function mostrarAba(nome) {
+  document.getElementById('tela-detalhe-pedido').style.display = 'none';
+  document.getElementById('aba-inicio').style.display = (nome === 'inicio') ? '' : 'none';
+  document.getElementById('aba-historico').style.display = (nome === 'historico') ? '' : 'none';
+
+  document.querySelectorAll('#bottom-nav .nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === nome);
+  });
+
+  if (nome === 'historico') carregarHistorico();
+}
+
 async function fazerLogin() {
   const usuario = document.getElementById('login-usuario').value.trim();
   const senha = document.getElementById('login-senha').value;
@@ -288,6 +384,7 @@ async function fazerLogin() {
     garantirAudioContext();
 
     document.getElementById('login-senha').value = '';
+    mostrarAba('inicio');
     await carregarEntregas();
   } catch (e) {
     erroEl.textContent = 'Erro de conexão. Tente novamente.';
@@ -304,10 +401,7 @@ function sair() {
   mostrarTela('tela-login');
 }
 
-// ─── Notificações de novo pedido (só enquanto o app está aberto) ────────
-// Usa a Notification API direto do navegador — sem service worker, então
-// só funciona com o app/aba aberto (não aparece com o celular bloqueado).
-let idsPedidosConhecidos = null; // null = ainda não estabelecemos a base
+let idsPedidosConhecidos = null;
 
 function pedirPermissaoNotificacao() {
   if (typeof Notification === 'undefined') return;
@@ -316,14 +410,6 @@ function pedirPermissaoNotificacao() {
   }
 }
 
-// ─── Som de novo pedido ──────────────────────────────────────────────────
-// Gerado na hora via Web Audio API (dois bipes) — não depende de nenhum
-// arquivo de áudio hospedado. Navegadores mobile só deixam o som tocar
-// depois de algum toque do usuário na página (não pode ser automático) —
-// por isso o AudioContext" é criado/retomado no clique de login, e também
-// no primeiro toque em qualquer lugar da tela, como reforço para quando a
-// sessão já estava salva e carregarEntregas() roda sozinho, sem um clique
-// de login.
 let audioContextMotoboy = null;
 
 function garantirAudioContext() {
@@ -364,17 +450,20 @@ function tocarSomNovoPedido() {
   }
 }
 
-// Reforço: no primeiro toque em qualquer lugar da tela, tenta destravar o
-// áudio — cobre o caso de abrir o app já logado (sem passar pelo clique de
-// "Entrar"), que é quando a maioria dos navegadores mobile bloqueia o som.
+function vibrarNovoPedido() {
+  try {
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  } catch (e) {
+    console.warn('Vibração falhou:', e.message);
+  }
+}
+
 document.addEventListener('click', garantirAudioContext, { once: true });
 document.addEventListener('touchstart', garantirAudioContext, { once: true });
 
 function detectarPedidosNovos(entregas) {
   const idsAtuais = new Set(entregas.map(e => String(e.id)));
 
-  // Na primeira carga só estabelece a base (não notifica pedidos que já
-  // estavam atribuídos antes do app abrir).
   if (idsPedidosConhecidos !== null) {
     entregas.forEach(p => {
       if (!idsPedidosConhecidos.has(String(p.id))) {
@@ -388,6 +477,7 @@ function detectarPedidosNovos(entregas) {
 
 function notificarNovoPedido(pedido) {
   tocarSomNovoPedido();
+  vibrarNovoPedido();
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   try {
     new Notification('GACFOOD DELIVERY', {
@@ -399,9 +489,6 @@ function notificarNovoPedido(pedido) {
   toast('📦 Novo pedido #' + (pedido.numero_cupom ?? pedido.pedido_id_local));
 }
 
-// Se a sessão já estava salva (não precisou logar de novo agora), ainda
-// assim tenta habilitar notificação — em muitos navegadores mobile isso
-// funciona mesmo fora de um clique direto do usuário.
 if (getToken()) pedirPermissaoNotificacao();
 (function preencherLoginSalvo() {
   const salvo = localStorage.getItem('motoboy_login_salvo');
@@ -414,7 +501,6 @@ if (getToken()) pedirPermissaoNotificacao();
   }
 })();
 
-// ─── GPS ────────────────────────────────────────────────────────────────
 let intervalGps = null;
 let ultimaPosicaoMotoboy = null;
 
@@ -449,14 +535,11 @@ function pararEnvioGps() {
   if (intervalGps) { clearInterval(intervalGps); intervalGps = null; }
 }
 
-// ─── Mapa de rota (Leaflet + Nominatim + OSRM, sem chave de API) ────────
 const cacheGeocode = {};
 const mapasAtivos = {};
 
 async function geocodificarEndereco(pedidoId, endereco, bairro) {
   if (cacheGeocode[pedidoId]) return cacheGeocode[pedidoId];
-  // Inclui o bairro na busca — evita confundir ruas de mesmo nome em
-  // bairros/cidades diferentes (é o mesmo cuidado tomado no servidor local).
   const partes = [endereco];
   if (bairro) partes.push(bairro);
   if (CIDADE_PADRAO) partes.push(CIDADE_PADRAO);
@@ -535,20 +618,12 @@ async function renderizarMapaEntrega(pedido) {
 
   if (entrada.linha) entrada.map.removeLayer(entrada.linha);
   entrada.linha = L.polyline(tracado, {
-    color: '#e94560',
+    color: '#22c55e',
     weight: 4,
     dashArray: pontosRota ? null : '6 8'
   }).addTo(entrada.map);
 
   entrada.map.fitBounds(entrada.linha.getBounds(), { padding: [24, 24] });
-}
-
-function limparMapasRemovidos(idsAtivos) {
-  Object.keys(mapasAtivos).forEach(id => {
-    if (idsAtivos.includes(id)) return;
-    try { mapasAtivos[id].map.remove(); } catch (e) {}
-    delete mapasAtivos[id];
-  });
 }
 
 function limparTodosOsMapas() {
@@ -558,16 +633,11 @@ function limparTodosOsMapas() {
   });
 }
 
-// ─── Lista de entregas ───────────────────────────────────────────────────
 let carregandoEntregas = false;
 let ultimaListaEntregas = [];
+let filtroPedidosAtual = 'todos';
 
 async function carregarEntregas() {
-  // Trava simples: se já existe um carregarEntregas() em andamento (ex: o
-  // recarregamento automático de 20s coincidindo com um clique manual em
-  // "Iniciar deslocamento"), ignora essa chamada nova em vez de deixar as
-  // duas mexerem no mapa ao mesmo tempo — era isso que fazia o mapa ficar
-  // em branco às vezes.
   if (carregandoEntregas) return;
   carregandoEntregas = true;
 
@@ -580,91 +650,145 @@ async function carregarEntregas() {
 
     detectarPedidosNovos(entregas);
 
-    document.querySelector('header h1').textContent = '🛵 Olá, ' + (getNome() || 'motoboy');
-    mostrarTela('tela-entregas');
+    document.getElementById('header-nome').textContent = getNome() || 'motoboy';
+    mostrarTela('app');
 
-    const lista = document.getElementById('lista-entregas');
+    ultimaListaEntregas = entregas;
+    document.getElementById('qtd-pendentes').textContent = entregas.length;
+    document.getElementById('hora-atualizado').textContent =
+      'às ' + new Date().toLocaleTimeString('pt-br', { hour: '2-digit', minute: '2-digit' });
 
-    // Os <div> de mapa antigos vão ser destruídos agora que o innerHTML é
-    // reescrito — então os mapas Leaflet presos a eles também precisam ser
-    // encerrados aqui, senão ficam "órfãos" e o mapa novo aparece vazio
-    // depois de um recarregamento (era por isso que sumia depois de 20s).
-    limparTodosOsMapas();
-
-    if (entregas.length === 0) {
-      lista.innerHTML = '<div class="vazio">📦 Nenhuma entrega pendente no momento.</div>';
-    } else {
-      ultimaListaEntregas = entregas;
-      lista.innerHTML = entregas.map(p => \`
-        <div class="card">
-          <div class="pedido-num">Pedido #\${p.numero_cupom ?? p.pedido_id_local}</div>
-          <div class="pedido-cliente">\${p.cliente_nome}</div>
-          <div class="pedido-linha"><span class="ic">📍</span><span>\${p.endereco}\${p.referencia ? ' — ' + p.referencia : ''}</span></div>
-          <div class="pedido-linha"><span class="ic">📞</span><span>\${p.cliente_telefone || ''}</span></div>
-          <div class="pedido-linha"><span class="ic">🕒</span><span>Saída: \${fmtHora(p.horario_saida)}</span></div>
-          <div class="pedido-valor">\${fmt(p.valor)}</div>
-          <button class="btn-ver-detalhes" onclick="abrirDetalhePedido('\${p.id}')">🔎 Ver detalhes do pedido</button>
-          <div class="mapa" id="mapa-\${p.id}"><div class="mapa-indisponivel">Carregando mapa...</div></div>
-          <button class="btn-deslocamento" onclick="iniciarDeslocamento('\${p.id}', this)">🛵 Iniciar deslocamento</button>
-          <button class="btn-confirmar" onclick="confirmarEntrega('\${p.id}', this)">✅ Entreguei pedido</button>
-          <button class="btn-ocorrencia" onclick="abrirModalOcorrencia('\${p.id}')">⚠️ Informar ocorrência</button>
-        </div>
-      \`).join('');
-
-      entregas.forEach(p => renderizarMapaEntrega(p));
-    }
+    renderizarListaPedidos();
 
     await carregarResumoHoje();
-    await carregarHistorico();
   } catch (e) {
     console.error('Erro carregar entregas:', e);
-    toast('Erro ao carregar entregas', 'err');
+
+    const mensagemErro = (e && e.message) ? String(e.message) : '';
+    if (mensagemErro.indexOf('SESSAO_INVALIDA') !== -1) {
+      localStorage.removeItem('motoboy_token');
+      localStorage.removeItem('motoboy_nome');
+      mostrarTela('tela-login');
+      const erroEl = document.getElementById('login-erro');
+      if (erroEl) {
+        erroEl.textContent = 'Sessão expirada. Faça login novamente.';
+        erroEl.style.display = 'block';
+      }
+    } else {
+      toast('Erro ao carregar entregas', 'err');
+    }
   } finally {
     carregandoEntregas = false;
   }
 }
 
+function filtrarPedidos(tipo) {
+  filtroPedidosAtual = tipo;
+  document.querySelectorAll('#aba-inicio .filtro-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filtro === tipo);
+  });
+  renderizarListaPedidos();
+}
+
+function renderizarListaPedidos() {
+  const lista = document.getElementById('lista-entregas');
+
+  limparTodosOsMapas();
+
+  let entregas = ultimaListaEntregas.slice();
+
+  entregas.sort((a, b) => {
+    const ta = a.horario_pedido || a.criado_em || '';
+    const tb = b.horario_pedido || b.criado_em || '';
+    return filtroPedidosAtual === 'antigos' ? ta.localeCompare(tb) : tb.localeCompare(ta);
+  });
+
+  if (filtroPedidosAtual === 'proximos') entregas = entregas.slice(0, 3);
+
+  if (entregas.length === 0) {
+    lista.innerHTML = '<div class="vazio">📦 Nenhuma entrega pendente no momento.</div>';
+    return;
+  }
+
+  lista.innerHTML = entregas.map(p => \`
+    <div class="card">
+      <div class="pedido-num">Pedido #\${p.numero_cupom ?? p.pedido_id_local}</div>
+      <div class="pedido-cliente">\${p.cliente_nome}</div>
+      <div class="pedido-linha"><span class="ic">📍</span><span>\${p.endereco}\${p.referencia ? ' — ' + p.referencia : ''}</span></div>
+      <div class="pedido-linha"><span class="ic">📞</span><span>\${p.cliente_telefone || ''}</span></div>
+      <div class="pedido-linha"><span class="ic">🕒</span><span>Saída: \${fmtHora(p.horario_saida)}</span></div>
+      <div class="pedido-valor">\${fmt(p.valor)}</div>
+      <button class="btn-ver-detalhes" onclick="abrirDetalhePedido('\${p.id}')">🔎 Ver detalhes do pedido</button>
+      <div class="mapa" id="mapa-\${p.id}"><div class="mapa-indisponivel">Carregando mapa...</div></div>
+      <button class="btn-deslocamento" onclick="iniciarDeslocamento('\${p.id}', this)">🛵 Iniciar deslocamento</button>
+      <button class="btn-confirmar" onclick="confirmarEntrega('\${p.id}')">✅ Entreguei pedido</button>
+      <button class="btn-ocorrencia" onclick="abrirModalOcorrencia('\${p.id}')">⚠️ Informar ocorrência</button>
+    </div>
+  \`).join('');
+
+  entregas.forEach(p => renderizarMapaEntrega(p));
+}
+
 async function iniciarDeslocamento(entregaId, btn) {
-  if (btn.disabled) return; // trava contra clique duplo
-  btn.disabled = true;
+  if (btn && btn.disabled) return;
+  if (btn) btn.disabled = true;
   try {
     const resultado = await rpc('iniciar_deslocamento', { p_token: getToken(), p_entrega_id: entregaId });
     if (!resultado || !resultado.ok) {
       toast(resultado?.error || 'Erro ao iniciar deslocamento', 'err');
-      btn.disabled = false;
+      if (btn) btn.disabled = false;
       return;
     }
     toast('Deslocamento iniciado');
-    carregarEntregas();
+    await carregarEntregas();
   } catch (e) {
     console.error(e);
     toast('Erro de comunicação', 'err');
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
   }
 }
 
-async function confirmarEntrega(entregaId, btn) {
-  if (btn.disabled) return; // trava contra clique duplo
-  if (!confirm('Confirmar entrega realizada?')) return;
-  btn.disabled = true;
+let entregaIdConfirmar = null;
+
+function confirmarEntrega(entregaId) {
+  entregaIdConfirmar = entregaId;
+  const btn = document.getElementById('btn-modal-confirmar-sim');
+  btn.disabled = false; btn.textContent = 'SIM, ENTREGUEI!';
+  document.getElementById('modal-confirmar').style.display = 'flex';
+}
+
+function fecharModalConfirmar() {
+  document.getElementById('modal-confirmar').style.display = 'none';
+  entregaIdConfirmar = null;
+}
+
+async function confirmarEntregaModalAcao() {
+  if (!entregaIdConfirmar) return;
+  const entregaId = entregaIdConfirmar;
+  const btn = document.getElementById('btn-modal-confirmar-sim');
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Confirmando...';
+
   try {
     const resultado = await rpc('confirmar_entrega', { p_token: getToken(), p_entrega_id: entregaId });
     if (!resultado || !resultado.ok) {
       toast(resultado?.error || 'Não foi possível confirmar', 'err');
-      btn.disabled = false;
+      btn.disabled = false; btn.textContent = 'SIM, ENTREGUEI!';
       return;
     }
     toast('Entrega confirmada!');
+    fecharModalConfirmar();
+    fecharDetalhePedido();
     carregarEntregas();
   } catch (e) {
     console.error(e);
     toast('Erro de conexão', 'err');
-    btn.disabled = false;
+    btn.disabled = false; btn.textContent = 'SIM, ENTREGUEI!';
   }
 }
 
 function linkWhatsApp(telefone) {
-  const digitos = (telefone || '').replace(/\D/g, '');
+  const digitos = (telefone || '').replace(/\\D/g, '');
   if (!digitos) return null;
   const comCodigo = digitos.length <= 11 ? '55' + digitos : digitos;
   return 'https://wa.me/' + comCodigo;
@@ -714,7 +838,7 @@ function abrirDetalhePedido(entregaId) {
     <div class="detalhe-secao">
       <div class="detalhe-label">Itens do pedido</div>
       \${itens.length
-        ? itens.map(i => '<div class="detalhe-item-linha"><span>' + i.quantidade + 'x ' + i.nome + (i.observacao ? ' <span style="color:var(--muted);font-size:0.78rem;">(' + i.observacao + ')</span>' : '') + '</span><span style="color:var(--green);">' + fmt(i.subtotal) + '</span></div>').join('')
+        ? itens.map(i => '<div class="detalhe-item-linha"><span>' + i.quantidade + 'x ' + i.nome + (i.observacao ? ' <span style="color:var(--muted);font-size:0.78rem;">(' + i.observacao + ')</span>' : '') + '</span><span style="color:var(--green2);">' + fmt(i.subtotal) + '</span></div>').join('')
         : '<div style="color:var(--muted);font-size:0.85rem;">Itens não disponíveis para este pedido</div>'}
     </div>
 
@@ -727,7 +851,7 @@ function abrirDetalhePedido(entregaId) {
 
     <div class="detalhe-secao">
       <div class="detalhe-label">Valor do pedido</div>
-      <div class="detalhe-valor" style="color:var(--green);font-size:1.2rem;">\${fmt(p.valor)}</div>
+      <div class="detalhe-valor" style="color:var(--green2);font-size:1.2rem;">\${fmt(p.valor)}</div>
     </div>
 
     <div class="detalhe-secao">
@@ -735,29 +859,34 @@ function abrirDetalhePedido(entregaId) {
       <div class="detalhe-valor">\${fmtHora(p.horario_pedido || p.criado_em)}</div>
     </div>
 
+    <div class="mapa" id="mapa-detalhe-\${p.id}"><div class="mapa-indisponivel">Carregando mapa...</div></div>
+
     <div class="detalhe-acoes">
       <button class="btn-ver-mapa" onclick="verNoMapaDetalhe('\${p.id}')">🗺️ VER NO MAPA</button>
       \${emRota
-        ? '<button class="btn-confirmar" onclick="confirmarEntrega(\\'' + p.id + '\\', this)">✅ ENTREGUE</button>'
+        ? '<button class="btn-confirmar" onclick="confirmarEntrega(\\'' + p.id + '\\')">✅ ENTREGUE</button>'
         : '<button class="btn-deslocamento" onclick="iniciarDeslocamento(\\'' + p.id + '\\', this)">🛵 INICIAR DESLOCAMENTO</button>'}
     </div>
 
     <button class="btn-ocorrencia" style="margin-top:10px;" onclick="abrirModalOcorrencia('\${p.id}')">⚠️ Informar ocorrência</button>
   \`;
 
-  mostrarTela('tela-detalhe-pedido');
+  document.getElementById('aba-inicio').style.display = 'none';
+  document.getElementById('aba-historico').style.display = 'none';
+  document.getElementById('tela-detalhe-pedido').style.display = 'block';
 }
 
 function fecharDetalhePedido() {
-  mostrarTela('tela-entregas');
+  document.getElementById('tela-detalhe-pedido').style.display = 'none';
+  const abaAtiva = document.querySelector('#bottom-nav .nav-item.active');
+  mostrarAba(abaAtiva ? abaAtiva.dataset.tab : 'inicio');
 }
 
 function verNoMapaDetalhe(entregaId) {
-  fecharDetalhePedido();
   setTimeout(() => {
-    const el = document.getElementById('mapa-' + entregaId);
+    const el = document.getElementById('mapa-detalhe-' + entregaId);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 150);
+  }, 100);
 }
 
 let entregaIdOcorrencia = null;
@@ -782,13 +911,10 @@ async function confirmarOcorrencia() {
   const entregaId = entregaIdOcorrencia;
 
   const btn = document.getElementById('btn-confirmar-ocorrencia');
-  if (btn.disabled) return; // trava contra clique duplo
+  if (btn.disabled) return;
   btn.disabled = true; btn.textContent = 'Enviando...';
 
   try {
-    // A própria função no Supabase já marca o pedido como NAO_ENTREGUE
-    // (separado de ENTREGUE, pra não misturar nos relatórios) — não
-    // precisa mais chamar confirmar_entrega depois.
     const resultado = await rpc('registrar_ocorrencia', {
       p_token: getToken(), p_entrega_id: entregaId, p_tipo: tipo, p_descricao: detalhe || null
     });
@@ -810,29 +936,18 @@ async function confirmarOcorrencia() {
   }
 }
 
-// ─── Resumo de desempenho e histórico ────────────────────────────────────
 async function carregarResumoHoje() {
   const token = getToken();
   if (!token) return;
   try {
-    const resumo = await rpc('resumo_entregas_motoboy', { p_token: token });
-    const area = document.getElementById('resumo-entregas');
-    if (!area || !resumo) return;
-    area.innerHTML = \`
-      <div class="card">
-        <div class="pedido-num">📊 Desempenho de hoje</div>
-        <div class="pedido-linha"><span class="ic">📦</span><span>Entregas realizadas: \${resumo.entregas_realizadas || 0}</span></div>
-        <div class="pedido-linha"><span class="ic">💰</span><span>Valor entregue: \${fmt(resumo.valor_total || 0)}</span></div>
-        <div class="pedido-linha"><span class="ic">⏱️</span><span>Tempo médio: \${resumo.tempo_medio || '--'}</span></div>
-        <div class="pedido-linha"><span class="ic">🛵</span><span>Última entrega: \${resumo.ultima_entrega ? fmtHora(resumo.ultima_entrega) : '--'}</span></div>
-      </div>
-    \`;
+    await rpc('resumo_entregas_motoboy', { p_token: token });
   } catch (e) {
     console.warn('Erro resumo:', e.message);
   }
 }
 
 let ultimoHistoricoCompleto = [];
+let periodoHistoricoAtual = 'hoje';
 
 async function carregarHistorico() {
   const token = getToken();
@@ -846,64 +961,79 @@ async function carregarHistorico() {
   }
 }
 
+function filtrarHistoricoPeriodo(periodo) {
+  periodoHistoricoAtual = periodo;
+  document.querySelectorAll('#aba-historico .filtro-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.periodo === periodo);
+  });
+  renderizarHistorico();
+}
+
+function dataDentroDoPeriodo(dataIso, periodo) {
+  if (!dataIso) return false;
+  const data = new Date(dataIso);
+  const agora = new Date();
+
+  if (periodo === 'hoje') {
+    return data.toDateString() === agora.toDateString();
+  }
+  if (periodo === 'semana') {
+    const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return data >= seteDiasAtras;
+  }
+  if (periodo === 'mes') {
+    return data.getMonth() === agora.getMonth() && data.getFullYear() === agora.getFullYear();
+  }
+  return true;
+}
+
 function renderizarHistorico() {
   const area = document.getElementById('historico-entregas');
+  const resumo = document.getElementById('resumo-historico');
   if (!area) return;
 
-  const dataInicio = document.getElementById('hist-data-inicio')?.value;
-  const dataFim = document.getElementById('hist-data-fim')?.value;
-
-  let lista = ultimoHistoricoCompleto;
-
-  // Filtro por período — compara só a parte de data (YYYY-MM-DD) do
-  // horario_entrega, ignorando hora.
-  if (dataInicio || dataFim) {
-    lista = lista.filter(e => {
-      if (!e.horario_entrega) return false;
-      const dataEntrega = e.horario_entrega.slice(0, 10);
-      if (dataInicio && dataEntrega < dataInicio) return false;
-      if (dataFim && dataEntrega > dataFim) return false;
-      return true;
-    });
-  }
+  const lista = ultimoHistoricoCompleto.filter(e =>
+    dataDentroDoPeriodo(e.horario_entrega, periodoHistoricoAtual)
+  );
 
   if (!lista.length) {
-    area.innerHTML = '<div class="vazio">Nenhuma entrega ' + ((dataInicio || dataFim) ? 'no período selecionado.' : 'realizada.') + '</div>';
-    return;
+    area.innerHTML = '<div class="vazio">Nenhuma entrega no período selecionado.</div>';
+  } else {
+    area.innerHTML = lista.map(e => \`
+      <div class="card">
+        <div class="pedido-num">Pedido #\${e.numero_cupom || e.pedido_id_local}
+          <span class="hist-badge \${e.status === 'NAO_ENTREGUE' ? 'hist-nao-entregue' : 'hist-entregue'}">\${e.status === 'NAO_ENTREGUE' ? 'NÃO ENTREGUE' : 'ENTREGUE'}</span>
+        </div>
+        <div class="pedido-cliente">\${e.cliente_nome}</div>
+        <div class="pedido-linha"><span class="ic">📍</span><span>\${e.endereco}</span></div>
+        <div class="pedido-linha"><span class="ic">💰</span><span>Valor: \${fmt(e.valor)}</span></div>
+        <div class="pedido-linha"><span class="ic">🕒</span><span>\${e.status === 'NAO_ENTREGUE' ? 'Concluído' : 'Entregue'}: \${fmtHora(e.horario_entrega)}</span></div>
+      </div>
+    \`).join('');
   }
 
-  area.innerHTML = lista.map(e => \`
-    <div class="card">
-      <div class="pedido-num">Pedido #\${e.numero_cupom || e.pedido_id_local}
-        <span class="hist-badge \${e.status === 'NAO_ENTREGUE' ? 'hist-nao-entregue' : 'hist-entregue'}">\${e.status === 'NAO_ENTREGUE' ? 'NÃO ENTREGUE' : 'ENTREGUE'}</span>
-      </div>
-      <div class="pedido-cliente">\${e.cliente_nome}</div>
-      <div class="pedido-linha"><span class="ic">📍</span><span>\${e.endereco}</span></div>
-      <div class="pedido-linha"><span class="ic">📞</span><span>\${e.cliente_telefone || ''}</span></div>
-      <div class="pedido-linha"><span class="ic">💰</span><span>Valor: \${fmt(e.valor)}</span></div>
-      <div class="pedido-linha"><span class="ic">🕒</span><span>\${e.status === 'NAO_ENTREGUE' ? 'Concluído' : 'Entregue'}: \${fmtHora(e.horario_entrega)}</span></div>
+  const entregues = lista.filter(e => e.status !== 'NAO_ENTREGUE');
+  const totalRecebido = entregues.reduce((soma, e) => soma + (Number(e.valor) || 0), 0);
+
+  resumo.innerHTML = \`
+    <div class="resumo-historico-item">
+      <div class="num">\${lista.length}</div>
+      <div class="lbl">Entregas</div>
     </div>
-  \`).join('');
+    <div class="resumo-historico-item">
+      <div class="num verde">\${fmt(totalRecebido)}</div>
+      <div class="lbl">Total recebido</div>
+    </div>
+  \`;
 }
 
-function filtrarHistorico() {
-  renderizarHistorico();
-}
-
-function limparFiltroHistorico() {
-  document.getElementById('hist-data-inicio').value = '';
-  document.getElementById('hist-data-fim').value = '';
-  renderizarHistorico();
-}
-
-// ─── Boot ─────────────────────────────────────────────────────────────
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && getToken()) carregarEntregas();
 });
 
 setInterval(() => { if (getToken()) carregarEntregas(); }, 20000);
 
-if (getToken()) carregarEntregas(); else mostrarTela('tela-login');
+if (getToken()) { mostrarAba('inicio'); carregarEntregas(); } else { mostrarTela('tela-login'); }
 </script>
 
 </body>
