@@ -538,9 +538,10 @@ function pararEnvioGps() {
 const cacheGeocode = {};
 const mapasAtivos = {};
 
-async function geocodificarEndereco(pedidoId, endereco, bairro) {
+async function geocodificarEndereco(pedidoId, endereco, numero, bairro) {
   if (cacheGeocode[pedidoId]) return cacheGeocode[pedidoId];
-  const partes = [endereco];
+  const ruaComNumero = numero ? (endereco + ', ' + numero) : endereco;
+  const partes = [ruaComNumero];
   if (bairro) partes.push(bairro);
   if (CIDADE_PADRAO) partes.push(CIDADE_PADRAO);
   const query = partes.join(', ');
@@ -590,7 +591,7 @@ async function renderizarMapaEntrega(pedido) {
   const container = document.getElementById('mapa-' + pedido.id);
   if (!container || typeof L === 'undefined') return;
 
-  const destino = await geocodificarEndereco(pedido.id, pedido.endereco, pedido.bairro);
+  const destino = await geocodificarEndereco(pedido.id, pedido.endereco, pedido.numero, pedido.bairro);
   if (!destino) {
     container.innerHTML = '<div class="mapa-indisponivel">Não foi possível localizar este endereço no mapa.</div>';
     return;
@@ -606,7 +607,7 @@ async function renderizarMapaEntrega(pedido) {
     L.control.attribution({ prefix: false }).addAttribution('© OpenStreetMap').addTo(map);
     const marcadorDestino = L.marker([destino.lat, destino.lng], { title: pedido.cliente_nome })
       .addTo(map)
-      .bindPopup(pedido.cliente_nome + '<br>' + pedido.endereco);
+      .bindPopup(pedido.cliente_nome + '<br>' + pedido.endereco + (pedido.numero ? ', ' + pedido.numero : ''));
     entrada = { map, marcadorDestino, marcadorMotoboy: null, linha: null };
     mapasAtivos[pedido.id] = entrada;
   }
@@ -714,7 +715,7 @@ function renderizarListaPedidos() {
     <div class="card">
       <div class="pedido-num">Pedido #\${p.numero_cupom ?? p.pedido_id_local}</div>
       <div class="pedido-cliente">\${p.cliente_nome}</div>
-      <div class="pedido-linha"><span class="ic">📍</span><span>\${p.endereco}\${p.referencia ? ' — ' + p.referencia : ''}</span></div>
+      <div class="pedido-linha"><span class="ic">📍</span><span>\${p.endereco}\${p.numero ? ', ' + p.numero : ''}\${p.referencia ? ' — ' + p.referencia : ''}</span></div>
       <div class="pedido-linha"><span class="ic">📞</span><span>\${p.cliente_telefone || ''}</span></div>
       <div class="pedido-linha"><span class="ic">🕒</span><span>Saída: \${fmtHora(p.horario_saida)}</span></div>
       <div class="pedido-valor">\${fmt(p.valor)}</div>
@@ -825,7 +826,8 @@ function abrirDetalhePedido(entregaId) {
 
     <div class="detalhe-secao">
       <div class="detalhe-label">Endereço</div>
-      <div class="detalhe-valor">\${p.endereco}</div>
+      <div class="detalhe-valor">\${p.endereco}\${p.numero ? ', ' + p.numero : ''}</div>
+      \${p.complemento ? '<div style="font-size:0.85rem;color:var(--muted);">' + p.complemento + '</div>' : ''}
       \${p.bairro ? '<div style="font-size:0.85rem;color:var(--muted);">' + p.bairro + '</div>' : ''}
     </div>
 
