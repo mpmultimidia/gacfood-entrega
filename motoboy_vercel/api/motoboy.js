@@ -715,7 +715,7 @@ function renderizarListaPedidos() {
     <div class="card">
       <div class="pedido-num">Pedido #\${p.numero_cupom ?? p.pedido_id_local}</div>
       <div class="pedido-cliente">\${p.cliente_nome}</div>
-      <div class="pedido-linha"><span class="ic">📍</span><span>\${p.endereco}\${p.numero ? ', ' + p.numero : ''}\${p.referencia ? ' — ' + p.referencia : ''}</span></div>
+      <div class="pedido-linha"><span class="ic">📍</span><span>\${p.endereco}\${p.numero ? ', ' + p.numero : ''}\${p.complemento ? ' (' + p.complemento + ')' : ''}\${p.referencia ? ' — ' + p.referencia : ''}</span></div>
       <div class="pedido-linha"><span class="ic">📞</span><span>\${p.cliente_telefone || ''}</span></div>
       <div class="pedido-linha"><span class="ic">🕒</span><span>Saída: \${fmtHora(p.horario_saida)}</span></div>
       <div class="pedido-valor">\${fmt(p.valor)}</div>
